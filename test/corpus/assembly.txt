@@ -1,0 +1,74 @@
+=====
+single-statement assembly block
+=====
+
+function f() { assembly { x := caller() } }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (assembly_stmt
+        (assembly_block)))))
+
+=====
+assembly with nested braces (switch-case)
+=====
+
+function f() {
+  assembly {
+    switch x
+    case 0 { sstore(0, 0) }
+    default { sstore(0, 1) }
+  }
+}
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (assembly_stmt
+        (assembly_block
+          (assembly_block)
+          (assembly_block))))))
+
+=====
+assembly with for loop
+=====
+
+function f() {
+  assembly {
+    for {} lt(i, n) { i := add(i, 1) } { mstore(i, 0) }
+  }
+}
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (assembly_stmt
+        (assembly_block
+          (assembly_block)
+          (assembly_block)
+          (assembly_block))))))
+
+=====
+empty assembly block
+=====
+
+function f() { assembly {} }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (assembly_stmt
+        (assembly_block)))))

@@ -1,0 +1,88 @@
+=====
+forall single type variable
+=====
+
+forall a . function id(x : a) -> a { return x; }
+
+---
+
+(source_file
+  (function_decl
+    sig_prefix: (sig_prefix
+      (identifier))
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier))))
+    return_type: (type_identifier
+      name: (identifier))
+    body: (body
+      (return_stmt
+        value: (identifier)))))
+
+=====
+forall multiple type variables
+=====
+
+forall a b . function const(x : a, y : b) -> a { return x; }
+
+---
+
+(source_file
+  (function_decl
+    sig_prefix: (sig_prefix
+      (identifier)
+      (identifier))
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier)))
+      (param
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier))))
+    return_type: (type_identifier
+      name: (identifier))
+    body: (body
+      (return_stmt
+        value: (identifier)))))
+
+=====
+forall with constraint
+=====
+
+forall a . a : Eq => function neq(x : a, y : a) -> bool { return !(x == y); }
+
+---
+
+(source_file
+  (function_decl
+    sig_prefix: (sig_prefix
+      (identifier)
+      (constraint
+        head: (type_identifier
+          name: (identifier))
+        class: (identifier)))
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier)))
+      (param
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier))))
+    return_type: (type_identifier
+      name: (identifier))
+    body: (body
+      (return_stmt
+        value: (unary_expression
+          argument: (parenthesized_expression
+            (binary_expression
+              left: (identifier)
+              right: (identifier))))))))

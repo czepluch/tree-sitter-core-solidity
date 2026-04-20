@@ -1,0 +1,190 @@
+=====
+arithmetic precedence
+=====
+
+function f() { let x = 1 + 2 * 3; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (let_decl
+        name: (identifier)
+        value: (binary_expression
+          left: (integer_literal)
+          right: (binary_expression
+            left: (integer_literal)
+            right: (integer_literal)))))))
+
+=====
+comparison and logical operators
+=====
+
+function f(a, b) { return a < b && a != 0; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier))
+      (param
+        name: (identifier)))
+    body: (body
+      (return_stmt
+        value: (binary_expression
+          left: (binary_expression
+            left: (identifier)
+            right: (identifier))
+          right: (binary_expression
+            left: (identifier)
+            right: (integer_literal)))))))
+
+=====
+function call and member access
+=====
+
+function f() { return a.b(c); }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (method_call_expression
+          object: (identifier)
+          property: (identifier)
+          arguments: (arguments
+            (identifier)))))))
+
+=====
+index expression
+=====
+
+function f() { return arr[0]; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (index_expression
+          object: (identifier)
+          index: (integer_literal))))))
+
+=====
+tuple expression
+=====
+
+function f() { return (1, 2, 3); }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (tuple_expression
+          (integer_literal)
+          (integer_literal)
+          (integer_literal))))))
+
+=====
+unit expression
+=====
+
+function f() { return (); }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (tuple_expression)))))
+
+=====
+lambda
+=====
+
+function f() { return lam(x) { x + 1; }; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (lambda_expression
+          params: (param_list
+            (param
+              name: (identifier)))
+          body: (body
+            (expression_statement
+              (binary_expression
+                left: (identifier)
+                right: (integer_literal)))))))))
+
+=====
+type ascription
+=====
+
+function f() { return x : uint256; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (ascription_expression
+          value: (identifier)
+          type: (type_identifier
+            name: (identifier)))))))
+
+=====
+ternary expression
+=====
+
+function f() { return if x then 1 else 0; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (ternary_expression
+          condition: (identifier)
+          consequence: (integer_literal)
+          alternative: (integer_literal))))))
+
+=====
+proxy expression
+=====
+
+function f() { return @Foo; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (proxy_expression
+          type: (type_identifier
+            name: (identifier)))))))

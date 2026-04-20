@@ -1,0 +1,36 @@
+=====
+pragma no-patterson-condition, single name
+=====
+
+pragma no-patterson-condition Foo;
+
+---
+
+(source_file
+  (pragma_decl
+    (identifier)))
+
+=====
+pragma no-coverage-condition, multiple names
+=====
+
+pragma no-coverage-condition Foo, Bar, Baz;
+
+---
+
+(source_file
+  (pragma_decl
+    (identifier)
+    (identifier)
+    (identifier)))
+
+=====
+pragma no-bounded-variable-condition, empty list
+=====
+
+pragma no-bounded-variable-condition;
+
+---
+
+(source_file
+  (pragma_decl))

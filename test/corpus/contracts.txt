@@ -1,0 +1,77 @@
+=====
+empty contract
+=====
+
+contract Empty {
+}
+
+---
+
+(source_file
+  (contract_decl
+    name: (identifier)
+    body: (contract_body)))
+
+=====
+contract with fields
+=====
+
+contract Wallet {
+  owner : address;
+  balance : uint256;
+}
+
+---
+
+(source_file
+  (contract_decl
+    name: (identifier)
+    body: (contract_body
+      (field_decl
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier)))
+      (field_decl
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier))))))
+
+=====
+contract with constructor and function
+=====
+
+contract Counter {
+  count : uint256;
+
+  constructor() {
+    count = 0;
+  }
+
+  function inc() {
+    count = count + 1;
+  }
+}
+
+---
+
+(source_file
+  (contract_decl
+    name: (identifier)
+    body: (contract_body
+      (field_decl
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier)))
+      (constructor_decl
+        body: (body
+          (assign_stmt
+            left: (identifier)
+            right: (integer_literal))))
+      (function_decl
+        name: (identifier)
+        body: (body
+          (assign_stmt
+            left: (identifier)
+            right: (binary_expression
+              left: (identifier)
+              right: (integer_literal))))))))

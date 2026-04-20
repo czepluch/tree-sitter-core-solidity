@@ -1,0 +1,111 @@
+=====
+let declaration without type
+=====
+
+function f() { let x = 1; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (let_decl
+        name: (identifier)
+        value: (integer_literal)))))
+
+=====
+let declaration with type annotation
+=====
+
+function f() { let x : uint256 = 42; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (let_decl
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier))
+        value: (integer_literal)))))
+
+=====
+let declaration without initializer
+=====
+
+function f() { let x : word; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (let_decl
+        name: (identifier)
+        type: (type_identifier
+          name: (identifier))))))
+
+=====
+compound assignment
+=====
+
+function f() { x += 1; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (compound_assign_stmt
+        left: (identifier)
+        right: (integer_literal)))))
+
+=====
+if-else statement
+=====
+
+function f(x) { if (x) { return 1; } else { return 0; } }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)))
+    body: (body
+      (if_stmt
+        condition: (identifier)
+        consequence: (body
+          (return_stmt
+            value: (integer_literal)))
+        alternative: (body
+          (return_stmt
+            value: (integer_literal)))))))
+
+=====
+if without else
+=====
+
+function f(x) { if (x) { return 1; } }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)))
+    body: (body
+      (if_stmt
+        condition: (identifier)
+        consequence: (body
+          (return_stmt
+            value: (integer_literal)))))))

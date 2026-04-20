@@ -1,0 +1,65 @@
+=====
+line comment
+=====
+
+// top comment
+contract A {}
+
+---
+
+(source_file
+  (line_comment)
+  (contract_decl
+    name: (identifier)
+    body: (contract_body)))
+
+=====
+block comment
+=====
+
+/* simple block */
+contract A {}
+
+---
+
+(source_file
+  (block_comment)
+  (contract_decl
+    name: (identifier)
+    body: (contract_body)))
+
+=====
+nested block comment
+=====
+
+/* outer /* inner */ still outer */
+contract A {}
+
+---
+
+(source_file
+  (block_comment)
+  (contract_decl
+    name: (identifier)
+    body: (contract_body)))
+
+=====
+string with escapes
+=====
+
+function f() { let s = "hello\nworld\t!"; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (let_decl
+        name: (identifier)
+        value: (string_literal
+          (string_content)
+          (escape_sequence)
+          (string_content)
+          (escape_sequence)
+          (string_content))))))

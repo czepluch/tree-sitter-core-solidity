@@ -1,0 +1,90 @@
+=====
+simple instance
+=====
+
+instance word : Mem {
+  function size(x : word) -> word {
+    return 32;
+  }
+}
+
+---
+
+(source_file
+  (instance_decl
+    head: (type_identifier
+      name: (identifier))
+    class: (identifier)
+    body: (instance_body
+      (function_decl
+        name: (identifier)
+        params: (param_list
+          (param
+            name: (identifier)
+            type: (type_identifier
+              name: (identifier))))
+        return_type: (type_identifier
+          name: (identifier))
+        body: (body
+          (return_stmt
+            value: (integer_literal)))))))
+
+=====
+default instance
+=====
+
+default instance ByteArray : Storage {
+}
+
+---
+
+(source_file
+  (instance_decl
+    head: (type_identifier
+      name: (identifier))
+    class: (identifier)
+    body: (instance_body)))
+
+=====
+instance with forall and constraints
+=====
+
+forall a . a : Eq => instance Option(a) : Eq {
+}
+
+---
+
+(source_file
+  (instance_decl
+    sig_prefix: (sig_prefix
+      (identifier)
+      (constraint
+        head: (type_identifier
+          name: (identifier))
+        class: (identifier)))
+    head: (type_identifier
+      name: (identifier)
+      args: (type_args
+        (type_identifier
+          name: (identifier))))
+    class: (identifier)
+    body: (instance_body)))
+
+=====
+instance with tuple head
+=====
+
+instance (a, b) : Pair {
+}
+
+---
+
+(source_file
+  (instance_decl
+    head: (tuple_type
+      (type_identifier
+        name: (identifier))
+      (type_identifier
+        name: (identifier)))
+    class: (identifier)
+    body: (instance_body)))

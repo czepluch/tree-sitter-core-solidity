@@ -1,0 +1,82 @@
+=====
+simple class with one method
+=====
+
+class a : Eq {
+  function eq(x : a, y : a) -> bool;
+}
+
+---
+
+(source_file
+  (class_decl
+    self: (identifier)
+    name: (identifier)
+    body: (class_body
+      (signature
+        name: (identifier)
+        params: (param_list
+          (param
+            name: (identifier)
+            type: (type_identifier
+              name: (identifier)))
+          (param
+            name: (identifier)
+            type: (type_identifier
+              name: (identifier))))
+        return_type: (type_identifier
+          name: (identifier))))))
+
+=====
+class with forall prefix
+=====
+
+forall a . class a : Mem {
+  function size(x : a) -> word;
+}
+
+---
+
+(source_file
+  (class_decl
+    sig_prefix: (sig_prefix
+      (identifier))
+    self: (identifier)
+    name: (identifier)
+    body: (class_body
+      (signature
+        name: (identifier)
+        params: (param_list
+          (param
+            name: (identifier)
+            type: (type_identifier
+              name: (identifier))))
+        return_type: (type_identifier
+          name: (identifier))))))
+
+=====
+parameterized class
+=====
+
+class self : Ref(deref) {
+  function load(r : self) -> deref;
+}
+
+---
+
+(source_file
+  (class_decl
+    self: (identifier)
+    name: (identifier)
+    params: (type_params
+      (identifier))
+    body: (class_body
+      (signature
+        name: (identifier)
+        params: (param_list
+          (param
+            name: (identifier)
+            type: (type_identifier
+              name: (identifier))))
+        return_type: (type_identifier
+          name: (identifier))))))

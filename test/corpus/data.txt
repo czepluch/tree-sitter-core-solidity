@@ -1,0 +1,67 @@
+=====
+data declaration with multiple variants
+=====
+
+data Bool = False | True;
+
+---
+
+(source_file
+  (data_decl
+    name: (identifier)
+    variants: (data_variant
+      name: (identifier))
+    variants: (data_variant
+      name: (identifier))))
+
+=====
+data declaration with parameters
+=====
+
+data Option(a) = None | Some(a);
+
+---
+
+(source_file
+  (data_decl
+    name: (identifier)
+    params: (type_params
+      (identifier))
+    variants: (data_variant
+      name: (identifier))
+    variants: (data_variant
+      name: (identifier)
+      args: (type_args
+        (type_identifier
+          name: (identifier))))))
+
+=====
+bare data declaration (no variants)
+=====
+
+data Payable;
+
+---
+
+(source_file
+  (data_decl
+    name: (identifier)))
+
+=====
+recursive data type
+=====
+
+data Nat = Zero | Succ(Nat);
+
+---
+
+(source_file
+  (data_decl
+    name: (identifier)
+    variants: (data_variant
+      name: (identifier))
+    variants: (data_variant
+      name: (identifier)
+      args: (type_args
+        (type_identifier
+          name: (identifier))))))

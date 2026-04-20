@@ -1,0 +1,153 @@
+import std;
+import dispatch;
+
+// caller(), myrevert(), require(), nowTime() are not in the std library yet,
+// so every contract must define its own.
+
+// returns uint256 instead of address because the dispatch system requires
+// ABIEncode for function params/returns, and address has no ABIEncode instance yet.
+function caller() -> uint256 {
+  let res: word;
+  assembly { res := caller() }
+  return uint256(res);
+}
+
+function myrevert(msg: word) -> () {
+  assembly { mstore(0, msg) revert(0, 32) }
+}
+
+function require(cond: bool, msg: word) {
+  if (!cond) { myrevert(msg); }
+}
+
+function nowTime() -> uint256 {
+  let t: word;
+  assembly { t := timestamp() }
+  return uint256(t);
+}
+
+// State machine as an ADT. Core Solidity can't yet store user-defined ADTs
+// in contract storage (no `CanStore` instance), so we encode state as a
+// primitive tag + per-variant fields below, and reconstruct the ADT inside
+// function bodies via `loadState()`. The pattern-matching payoff lives in
+// the function bodies.
+data EscrowState
+  = AwaitingFunds(uint256, uint256, uint256)                       // buyer, seller, price
+  | Funded(uint256, uint256, uint256)                              // buyer, seller, price
+  | Disputed(uint256, uint256, uint256, uint256, uint256)          // + arbiter, deadline
+  | Released
+  | Refunded;
+
+// `loadState` lives OUTSIDE the contract: every function declared inside a
+// contract is exposed as a dispatch method, which would require
+// `EscrowState : ABIEncode` (it doesn't have one).  A free function takes
+// the raw fields and returns the ADT.
+function loadState(tag : uint256,
+                   b   : uint256,
+                   s   : uint256,
+                   p   : uint256,
+                   a   : uint256,
+                   d   : uint256) -> EscrowState {
+  if (tag == uint256(0)) { return AwaitingFunds(b, s, p); }
+  if (tag == uint256(1)) { return Funded(b, s, p); }
+  if (tag == uint256(2)) { return Disputed(b, s, p, a, d); }
+  if (tag == uint256(3)) { return Released; }
+  if (tag == uint256(4)) { return Refunded; }
+  myrevert(0x6261645374617465); // "badState" - unreachable
+  return Released;
+}
+
+contract Escrow {
+  // stateTag: 0=AwaitingFunds, 1=Funded, 2=Disputed, 3=Released, 4=Refunded
+  stateTag : uint256;
+  buyer    : uint256;
+  seller   : uint256;
+  price    : uint256;
+  arbiter  : uint256;
+  deadline : uint256;
+
+  constructor(sellerArg : uint256, priceArg : uint256) {
+    stateTag = uint256(0);
+    buyer    = caller();
+    seller   = sellerArg;
+    price    = priceArg;
+    arbiter  = uint256(0);
+    deadline = uint256(0);
+  }
+
+  // Buyer (or anyone) funds the escrow.  Transitions AwaitingFunds -> Funded.
+  function fund() -> () {
+    // Bind fields to locals: the field-access desugarer doesn't rewrite bare
+    // field reads that sit inside call arguments, so we can't pass them
+    // directly to `loadState(...)`.
+    let tag = stateTag; let b = buyer; let s = seller;
+    let p = price; let a = arbiter; let d = deadline;
+    match loadState(tag, b, s, p, a, d) {
+      | AwaitingFunds(_, _, _) => stateTag = uint256(1);
+      | _                      => myrevert(0x6261645374617465);
+    }
+  }
+
+  // Buyer confirms receipt; transitions Funded -> Released.
+  function release() -> () {
+    let who = caller();
+    let b = buyer;
+    require(who == b, 0x6e6f744275796572); // "notBuyer"
+    let tag = stateTag; let s = seller;
+    let p = price; let a = arbiter; let d = deadline;
+    match loadState(tag, b, s, p, a, d) {
+      | Funded(_, _, _) => stateTag = uint256(3);
+      | _               => myrevert(0x6261645374617465);
+    }
+  }
+
+  // Either party raises a dispute; names an arbiter and a 7-day deadline.
+  function dispute(arb : uint256) -> () {
+    let who = caller();
+    let b = buyer; let s = seller;
+    require(who == b || who == s, 0x6e6f745061727479); // "notParty"
+    let tag = stateTag; let p = price; let a = arbiter; let d = deadline;
+    match loadState(tag, b, s, p, a, d) {
+      | Funded(_, _, _) =>
+          stateTag = uint256(2);
+          arbiter  = arb;
+          deadline = nowTime() + uint256(604800); // 7 days
+      | _ => myrevert(0x6261645374617465);
+    }
+  }
+
+  // Arbiter rules.  toBuyer != 0 => Refunded, otherwise Released.
+  // Uses uint256 (not bool) since dispatch needs ABIAttribs/SigString, which
+  // bool doesn't have yet.
+  function resolve(toBuyer : uint256) -> () {
+    let who = caller();
+    let a = arbiter;
+    require(who == a, 0x6e6f744172627472); // "notArbtr"
+    let tag = stateTag; let b = buyer; let s = seller;
+    let p = price; let d = deadline;
+    match loadState(tag, b, s, p, a, d) {
+      | Disputed(_, _, _, _, _) =>
+          if (toBuyer != uint256(0)) { stateTag = uint256(4); }
+          else                       { stateTag = uint256(3); }
+      | _ => myrevert(0x6261645374617465);
+    }
+  }
+
+  // Buyer reclaims funds if the arbiter does not rule before the deadline.
+  // Disputed -> Refunded, gated on nowTime() > deadline.
+  function claimTimeout() -> () {
+    let who = caller();
+    let b = buyer;
+    require(who == b, 0x6e6f744275796572); // "notBuyer"
+    let tag = stateTag; let s = seller;
+    let p = price; let a = arbiter; let d = deadline;
+    match loadState(tag, b, s, p, a, d) {
+      | Disputed(_, _, _, _, _) =>
+          require(nowTime() > d, 0x746f6f4561726c79); // "tooEarly"
+          stateTag = uint256(4);
+      | _ => myrevert(0x6261645374617465);
+    }
+  }
+
+  function getState() -> uint256 { return stateTag; }
+}
