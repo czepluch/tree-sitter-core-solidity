@@ -1,30 +1,64 @@
 ; Tree-sitter highlight queries for Core Solidity.
-; Capture names follow the standard nvim-treesitter convention; Zed reuses
-; the same names via its tree-sitter integration.
+;
+; ORDERING: Neovim's treesitter highlighter applies the LAST matching pattern
+; when priorities tie. So generic fallbacks go first, specific captures go
+; below, and the specific ones win.
 
-; ----- keywords -----
+; ===== generic fallbacks (must come first) =====
+
+(identifier) @variable
+
+; Capitalization-based heuristics: Core Solidity doesn't distinguish
+; constructors/types from variables at the lexical level, but convention is
+; PascalCase for types/constructors, lowercase for values.
+((identifier) @type
+  (#match? @type "^[A-Z]"))
+
+; ===== literals =====
+
+(integer_literal) @number
+(hex_literal)     @number.hex
+(string_literal)  @string
+(escape_sequence) @string.escape
+
+; ===== comments =====
+
+(line_comment)  @comment @spell
+(block_comment) @comment @spell
+
+; ===== punctuation =====
+
+[ "(" ")" "{" "}" "[" "]" ] @punctuation.bracket
+[ "," ";" "." ":" "|" ]     @punctuation.delimiter
+
+; ===== operators =====
+
+[ "->" "=>" ]                         @operator
+[ "=" "+=" "-=" ]                     @operator
+[ "==" "!=" "<" ">" "<=" ">=" ]       @operator
+[ "&&" "||" "!" ]                     @operator
+[ "+" "-" "*" "/" "%" ]               @operator
+"@"                                   @operator
+
+; ===== keywords =====
 
 [
   "contract"
   "constructor"
   "function"
   "let"
-  "return"
-  "if"
-  "else"
-  "then"
-  "match"
-  "data"
-  "class"
-  "instance"
-  "forall"
-  "default"
-  "type"
   "lam"
-  "import"
+  "default"
   "pragma"
   "assembly"
 ] @keyword
+
+"import" @keyword.import
+"return" @keyword.return
+
+[ "if" "else" "then" "match" ] @keyword.control
+
+[ "class" "instance" "data" "type" "forall" ] @keyword.type
 
 [
   "no-coverage-condition"
@@ -32,94 +66,7 @@
   "no-bounded-variable-condition"
 ] @keyword.directive
 
-"return" @keyword.return
-"import" @keyword.import
-
-[
-  "if"
-  "else"
-  "then"
-  "match"
-] @keyword.control
-
-[
-  "class"
-  "instance"
-  "data"
-  "type"
-  "forall"
-] @keyword.type
-
-; ----- operators -----
-
-[
-  "->"
-  "=>"
-] @operator
-
-[
-  "="
-  "+="
-  "-="
-] @operator
-
-[
-  "=="
-  "!="
-  "<"
-  ">"
-  "<="
-  ">="
-] @operator
-
-[
-  "&&"
-  "||"
-  "!"
-] @operator
-
-[
-  "+"
-  "-"
-  "*"
-  "/"
-  "%"
-] @operator
-
-"@" @operator
-
-; ----- punctuation -----
-
-[
-  "("
-  ")"
-  "{"
-  "}"
-  "["
-  "]"
-] @punctuation.bracket
-
-[
-  ","
-  ";"
-  "."
-  ":"
-  "|"
-] @punctuation.delimiter
-
-; ----- literals -----
-
-(integer_literal) @number
-(hex_literal)     @number
-(string_literal)  @string
-(escape_sequence) @string.escape
-
-; ----- comments -----
-
-(line_comment)  @comment @spell
-(block_comment) @comment @spell
-
-; ----- declarations: names -----
+; ===== declarations: binding positions =====
 
 (contract_decl    name: (identifier) @type)
 (class_decl       name: (identifier) @type)
@@ -130,57 +77,50 @@
 
 (function_decl    name: (identifier) @function)
 (signature        name: (identifier) @function)
-(constructor_decl "constructor" @function.builtin)
+"constructor"     @function.builtin
 
-; ----- call sites -----
-
-(call_expression function: (identifier) @function.call)
-(method_call_expression property: (identifier) @function.call)
-
-; ----- member access -----
-
-(member_expression property: (identifier) @variable.member)
-
-; ----- parameters -----
-
-(param name: (identifier) @variable.parameter)
-(lambda_expression (param_list (param name: (identifier) @variable.parameter)))
-
-; ----- field declarations -----
-
-(field_decl name: (identifier) @variable.member)
-
-; ----- type positions -----
+; ===== type annotations =====
 
 (type_identifier name: (identifier) @type)
+(type_identifier args: (type_args (type_identifier name: (identifier) @type)))
 (constraint      class: (identifier) @type)
+
+; forall type variables - they bind a name that's later used as a type
 (sig_prefix      (identifier) @type.parameter)
 (type_params     (identifier) @type.parameter)
 
-; ----- patterns -----
+; ===== parameters =====
 
-; A constructor pattern starting with an uppercase identifier is a data
-; constructor; otherwise it binds a fresh variable (Haskell-style).
-((constructor_pattern
-   name: (identifier) @constructor)
+(param name: (identifier) @variable.parameter)
+
+; ===== fields / members =====
+
+(field_decl       name: (identifier) @variable.member)
+(member_expression property: (identifier) @variable.member)
+
+; ===== call sites =====
+
+(call_expression        function: (identifier) @function.call)
+(method_call_expression property: (identifier) @function.call)
+
+; Uppercase "call" is a data constructor invocation like `Some(x)` or
+; `Method(name, payability, args, rets, fn)` - override @function.call.
+((call_expression function: (identifier) @constructor)
   (#match? @constructor "^[A-Z]"))
 
-((constructor_pattern
-   name: (identifier) @variable)
-  (#match? @variable "^[a-z_]"))
+; ===== patterns =====
 
 (wildcard_pattern) @variable.builtin
 
-; ----- capitalization-based fallback for bare identifiers -----
-
-; Uppercase identifiers in expression position are likely constructors.
-((call_expression
-   function: (identifier) @constructor)
+; In a constructor pattern, an uppercase head is a data constructor;
+; a lowercase head binds a fresh variable.
+((constructor_pattern name: (identifier) @constructor)
   (#match? @constructor "^[A-Z]"))
 
-((identifier) @constructor
-  (#match? @constructor "^[A-Z]"))
+((constructor_pattern name: (identifier) @variable)
+  (#match? @variable "^[a-z_]"))
 
-; ----- default variable fallback -----
+; ===== proxy syntax =====
 
-(identifier) @variable
+(proxy_expression "@" @operator)
+(proxy_type       "@" @operator)
