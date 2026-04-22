@@ -6,114 +6,219 @@ is a research-prototype compiler exploring a new type system for Solidity,
 with Haskell-style type classes, ADTs, pattern matching, `forall`
 quantifiers, and embedded Yul blocks.
 
-Status: v1. Parses the `std/` and `test/examples/dispatch/` corpus in
-`argotorg/solcore` cleanly (including the 47k-line `std/std.solc` stress test).
-Coverage on the full `test/examples/**` set sits above 94%; the remaining
-failures are files deliberately marked `runTestExpectingFailure` in
-`solcore/test/Cases.hs` or files missing semicolons.
+**Status:** v1. Parses all of `solcore/std/` and
+`solcore/test/examples/dispatch/` cleanly, including the 47k-line
+`std/std.solc` stress test. ~94% coverage on the full `solcore/test/examples/`
+tree - the misses are files marked `runTestExpectingFailure` in solcore's own
+test suite or source with missing semicolons.
 
-## Ground truth
+## What you get
 
-The grammar was written directly against:
+- Syntax highlighting for `.solc` files
+- Yul highlighting inside `assembly { ... }` blocks (via injection into
+  [tree-sitter-yul](https://github.com/czepluch/tree-sitter-yul))
+- Code folding for contracts, classes, instances, functions, match
+  statements, and match arms
+- Scope-aware identifier highlighting (cursor on a variable lights up other
+  occurrences in scope) via `locals.scm`
+- 48 passing corpus tests
 
-- `solcore/src/Solcore/Frontend/Lexer/SolcoreLexer.x` (Alex lexer)
-- `solcore/src/Solcore/Frontend/Parser/SolcoreParser.y` (Happy grammar)
+---
 
-When in doubt, those files are the source of truth.
+## Install - LazyVim (Neovim)
 
-## Repository layout
-
-```
-grammar.js                  main grammar
-src/scanner.c               external scanner for nested /* */ block comments
-queries/
-  highlights.scm            syntax highlighting
-  injections.scm            Yul injection for assembly { ... } blocks
-  folds.scm                 fold regions
-  indents.scm               indent hints
-  locals.scm                scopes / definitions / references
-test/corpus/                48 tree-sitter corpus tests
-examples/                   curated .solc files for manual verification
-```
-
-## Build
-
-```
-npm install
-npx tree-sitter generate
-npx tree-sitter test
-npx tree-sitter parse examples/std.solc
-```
-
-`npx tree-sitter test` should report `successful parses: 48; failed parses: 0`.
-
-## Local install - Neovim
-
-Add to your nvim-treesitter setup:
+Drop this into `~/.config/nvim/lua/plugins/core-solidity.lua`:
 
 ```lua
-local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-parser_config.core_solidity = {
-  install_info = {
-    url = "~/dev/argot/tree-sitter-core-solidity",  -- adjust to your path
-    files = { "src/parser.c", "src/scanner.c" },
-    branch = "main",
-    generate_requires_npm = false,
-    requires_generate_from_grammar = false,
+return {
+  {
+    "czepluch/tree-sitter-core-solidity",
+    build = function(plugin)
+      local out = vim.fn.stdpath("data") .. "/site/parser/core_solidity.so"
+      vim.fn.mkdir(vim.fn.fnamemodify(out, ":h"), "p")
+      vim.fn.system({
+        "cc", "-O2", "-shared", "-fPIC",
+        "-I", plugin.dir .. "/src",
+        plugin.dir .. "/src/parser.c",
+        plugin.dir .. "/src/scanner.c",
+        "-o", out,
+      })
+    end,
+    event = { "BufReadPre *.solc", "BufNewFile *.solc" },
+    config = function(plugin)
+      vim.filetype.add({ extension = { solc = "core_solidity" } })
+      local lang = "core_solidity"
+      for _, name in ipairs({ "highlights", "injections", "folds", "indents", "locals" }) do
+        local f = io.open(plugin.dir .. "/queries/" .. name .. ".scm", "r")
+        if f then
+          vim.treesitter.query.set(lang, name, f:read("*a"))
+          f:close()
+        end
+      end
+    end,
   },
-  filetype = "solc",
 }
+```
 
+Restart Neovim. Lazy.nvim will clone the repo, compile the parser, and
+register the grammar + queries automatically. No `tree-sitter` CLI is
+needed on the consumer side - just a C compiler (`cc`).
+
+### Yul injection (optional but recommended)
+
+For Yul inside `assembly { ... }` blocks to be highlighted, install the Yul
+parser the same way:
+
+```lua
+{
+  "czepluch/tree-sitter-yul",
+  build = function(plugin)
+    local out = vim.fn.stdpath("data") .. "/site/parser/yul.so"
+    vim.fn.mkdir(vim.fn.fnamemodify(out, ":h"), "p")
+    vim.fn.system({
+      "cc", "-O2", "-shared", "-fPIC",
+      "-I", plugin.dir .. "/src",
+      plugin.dir .. "/src/parser.c",
+      "-o", out,
+    })
+  end,
+  config = function(plugin)
+    local f = io.open(plugin.dir .. "/queries/highlights.scm", "r")
+    if f then
+      vim.treesitter.query.set("yul", "highlights", f:read("*a"))
+      f:close()
+    end
+  end,
+},
+```
+
+Without this, assembly bodies render as plain text - no errors, just no
+color inside the block.
+
+### Verify
+
+Open any `.solc` file and run:
+
+```
+:InspectTree
+```
+
+A tree view appears on the right. You should see `contract_decl`,
+`function_decl`, etc., and (if you installed the Yul parser) nested Yul
+nodes inside `assembly_block` subtrees.
+
+`:Inspect` with the cursor on any token lists which highlight captures
+applied - useful for understanding why something did or didn't get a color.
+
+---
+
+## Install - plain Neovim (no LazyVim)
+
+Works with `lazy.nvim`, `packer`, `vim-plug`, or even no package manager -
+the parser and queries just need to land in Neovim's runtime dirs.
+
+### With lazy.nvim
+
+Same plugin spec as the LazyVim section above, loaded through lazy.nvim
+directly. Lazy.nvim and LazyVim are different things - LazyVim is a
+preconfigured distribution, lazy.nvim is just the plugin manager. If you
+already use `require("lazy").setup({...})`, append the spec.
+
+### Manual (no package manager)
+
+```bash
+# 1. clone
+git clone https://github.com/czepluch/tree-sitter-core-solidity ~/.local/share/tree-sitter-core-solidity
+cd ~/.local/share/tree-sitter-core-solidity
+
+# 2. compile the parser into Neovim's parser dir
+mkdir -p ~/.local/share/nvim/site/parser
+cc -O2 -shared -fPIC -I src src/parser.c src/scanner.c \
+   -o ~/.local/share/nvim/site/parser/core_solidity.so
+
+# 3. install the queries
+mkdir -p ~/.config/nvim/queries/core_solidity
+ln -sf "$PWD"/queries/*.scm ~/.config/nvim/queries/core_solidity/
+```
+
+Then add the filetype mapping to your `init.lua`:
+
+```lua
 vim.filetype.add({
   extension = { solc = "core_solidity" },
 })
 ```
 
-Then `:TSInstallFromGrammar core_solidity`.
+Restart Neovim and open a `.solc` file. `:InspectTree` to verify.
 
-Symlink the query files so nvim-treesitter picks them up:
+For the Yul injection, repeat the same steps with
+<https://github.com/czepluch/tree-sitter-yul> (no `scanner.c` needed -
+the Yul parser only has `parser.c`).
 
-```
+---
+
+## Install - Development (from a local checkout)
+
+If you're hacking on the grammar itself, skip Lazy and point it at your
+working copy:
+
+```bash
+cd ~/dev/argot/tree-sitter-core-solidity
+npx tree-sitter generate
+npx tree-sitter test                      # should show 48/48 passing
+
+mkdir -p ~/.local/share/nvim/site/parser
+npx tree-sitter build -o ~/.local/share/nvim/site/parser/core_solidity.so
+
 mkdir -p ~/.config/nvim/queries/core_solidity
-ln -sf ~/dev/argot/tree-sitter-core-solidity/queries/*.scm ~/.config/nvim/queries/core_solidity/
+ln -sf "$PWD"/queries/*.scm ~/.config/nvim/queries/core_solidity/
 ```
 
-## Local install - Zed
+Filetype registration still needs a small plugin spec - same `vim.filetype.add`
+call as above, but without the `build` hook.
 
-Build the wasm parser, then load as a dev extension:
+Iteration loop:
+
+```bash
+npx tree-sitter generate && npx tree-sitter test
+npx tree-sitter build -o ~/.local/share/nvim/site/parser/core_solidity.so
+# :edit the buffer in Neovim to reload
+```
+
+Query file edits are picked up on `:edit` alone - no parser rebuild.
+
+---
+
+## Repository layout
 
 ```
-npx tree-sitter build --wasm
+grammar.js                  main grammar (~450 lines)
+src/
+  scanner.c                 external scanner for nested block comments
+  parser.c                  generated
+  grammar.json              generated
+  node-types.json           generated
+  tree_sitter/              generated bindings
+queries/
+  highlights.scm            syntax highlighting
+  injections.scm            Yul injection for assembly { ... }
+  folds.scm                 fold regions
+  indents.scm               indent hints
+  locals.scm                scopes / definitions / references
+test/corpus/                48 tree-sitter corpus tests
+examples/                   curated .solc files from solcore
+CLAUDE.md                   working notes for maintainers
 ```
 
-Create an extension directory with the grammar and queries (see
-`zed.dev/docs/extensions/languages` for the current schema).
+## Ground truth
 
-## Yul injection
+The grammar is written directly against:
 
-`queries/injections.scm` injects language `yul` into every `assembly { ... }`
-block. If you have `tree-sitter-yul` installed, Yul inside assembly will be
-highlighted using its rules. Without it, assembly bodies render with the
-default text color.
+- `solcore/src/Solcore/Frontend/Lexer/SolcoreLexer.x` (Alex lexer)
+- `solcore/src/Solcore/Frontend/Parser/SolcoreParser.y` (Happy grammar)
 
-The outer grammar deliberately parses assembly content as opaque
-brace-balanced text - Yul parsing is delegated.
-
-## Scope
-
-In scope for v1:
-
-- Full parser coverage of the `argotorg/solcore` language (minus
-  expected-failure files).
-- Highlight, fold, indent, locals, and Yul-injection queries.
-- Working Neovim integration.
-
-Out of scope:
-
-- LSP features (hover, go-to-def). Those require the real compiler.
-- Auto-formatting.
-- Publication to the nvim-treesitter registry or Zed extension store.
-- Semantic highlighting from type information.
+When in doubt, those files are the source of truth. See `CLAUDE.md` for
+maintainer-facing notes.
 
 ## License
 
