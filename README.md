@@ -48,7 +48,7 @@ return {
     config = function(plugin)
       vim.filetype.add({ extension = { solc = "core_solidity" } })
       local lang = "core_solidity"
-      for _, name in ipairs({ "highlights", "injections", "folds", "indents", "locals" }) do
+      for _, name in ipairs({ "highlights", "injections", "folds", "indents", "locals", "textobjects", "tags" }) do
         local f = io.open(plugin.dir .. "/queries/" .. name .. ".scm", "r")
         if f then
           vim.treesitter.query.set(lang, name, f:read("*a"))
@@ -205,6 +205,8 @@ queries/
   folds.scm                 fold regions
   indents.scm               indent hints
   locals.scm                scopes / definitions / references
+  textobjects.scm           nvim-treesitter-textobjects motions
+  tags.scm                  code-outline / ctags symbols
 test/corpus/                48 tree-sitter corpus tests
 examples/                   curated .solc files from solcore
 CLAUDE.md                   working notes for maintainers

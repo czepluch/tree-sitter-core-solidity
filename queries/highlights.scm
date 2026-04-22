@@ -124,3 +124,27 @@
 
 (proxy_expression "@" @operator)
 (proxy_type       "@" @operator)
+
+; ===== built-ins =====
+
+; Primitive types with sized variants: uint / uint8 ... uint256,
+; int / int8 ... int256, bytes / bytes1 ... bytes32.
+((type_identifier name: (identifier) @type.builtin)
+  (#match? @type.builtin "^(uint|int|bytes|fixed|ufixed)([0-9]+(x[0-9]+)?)?$"))
+
+; Fixed-name primitive and wrapper types.
+((type_identifier name: (identifier) @type.builtin)
+  (#any-of? @type.builtin
+    "word" "address" "bool" "string"
+    "memory" "calldata" "storage" "mapping" "Proxy"))
+
+; Constraint class heads when they name a stdlib class.
+((constraint class: (identifier) @type.builtin)
+  (#any-of? @type.builtin
+    "Eq" "Ord" "Num" "Ref" "Typedef" "Selector" "ExecMethod"
+    "ABIAttribs" "ABIDecode" "ABIEncode" "RunContract" "RunDispatch"
+    "Invokable" "SigString" "MethodLevelCallvalueCheck"))
+
+; Boolean / unit constructors from stdlib.
+((identifier) @constant.builtin
+  (#any-of? @constant.builtin "True" "False" "Unit" "None"))
