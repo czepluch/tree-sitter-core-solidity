@@ -344,7 +344,7 @@ module.exports = grammar({
     assembly_stmt: $ => seq('assembly', $.assembly_block),
 
     // An assembly_block holds balanced braces; actual Yul parsing is deferred
-    // to tree-sitter-yul via queries/injections.scm.
+    // to tree-sitter-yul via queries/core_solidity/injections.scm.
     assembly_block: $ => seq(
       '{',
       repeat($._assembly_content),

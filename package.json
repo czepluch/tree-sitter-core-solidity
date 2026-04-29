@@ -29,10 +29,10 @@
       "file-types": [
         "solc"
       ],
-      "highlights": "queries/highlights.scm",
-      "injections": "queries/injections.scm",
-      "folds": "queries/folds.scm",
-      "locals": "queries/locals.scm"
+      "highlights": "queries/core_solidity/highlights.scm",
+      "injections": "queries/core_solidity/injections.scm",
+      "folds": "queries/core_solidity/folds.scm",
+      "locals": "queries/core_solidity/locals.scm"
     }
   ]
 }

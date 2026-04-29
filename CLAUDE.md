@@ -58,8 +58,8 @@ echo "passed $pass / $total"
 ## Known design decisions
 
 - **Yul is delegated.** `assembly { ... }` parses as brace-balanced opaque
-  text in the outer grammar; Yul parsing happens via `queries/injections.scm`
-  pointing at `tree-sitter-yul`.
+  text in the outer grammar; Yul parsing happens via
+  `queries/core_solidity/injections.scm` pointing at `tree-sitter-yul`.
 - **Nested block comments need an external scanner.** Tree-sitter's
   regex-based lexer cannot match balanced `/* */` nesting. See `src/scanner.c`.
 - **Comparison operators are left-associative.** Happy declares them
@@ -73,7 +73,7 @@ echo "passed $pass / $total"
 ## Query ordering matters
 
 Neovim's treesitter highlighter applies *the last matching pattern* when
-priorities tie. In `queries/highlights.scm`, keep generic fallbacks
+priorities tie. In `queries/core_solidity/highlights.scm`, keep generic fallbacks
 (`(identifier) @variable`, capitalization heuristics) at the top and
 specific node-based captures (`(function_decl name: ...)`) below. Inverting
 this order silently breaks colors - the `@variable` catch-all ends up

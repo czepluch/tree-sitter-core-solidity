@@ -1,67 +1,26 @@
 # tree-sitter-core-solidity
 
 A [tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar for
-[Core Solidity](https://github.com/argotorg/solcore) (`.solc`). Core Solidity
-is a research-prototype compiler exploring a new type system for Solidity -
-Haskell-style type classes, ADTs, pattern matching, `forall` quantifiers,
-and embedded Yul blocks.
+[Core Solidity](https://github.com/argotorg/solcore) (`.solc`).
 
 ## Quick install (lazy.nvim / LazyVim)
 
 Drop this into `~/.config/nvim/lua/plugins/core-solidity.lua` and restart
-Neovim. Lazy clones, compiles, and registers everything automatically - no
-`tree-sitter` CLI needed on your end, just a C compiler.
+Neovim. Lazy clones, compiles, and Neovim picks up the parser and queries
+automatically. No `tree-sitter` CLI required, just a C compiler.
 
 ```lua
 return {
   {
     "czepluch/tree-sitter-core-solidity",
-    build = function(plugin)
-      local out = vim.fn.stdpath("data") .. "/site/parser/core_solidity.so"
-      vim.fn.mkdir(vim.fn.fnamemodify(out, ":h"), "p")
-      vim.fn.system({
-        "cc", "-O2", "-shared", "-fPIC",
-        "-I", plugin.dir .. "/src",
-        plugin.dir .. "/src/parser.c",
-        plugin.dir .. "/src/scanner.c",
-        "-o", out,
-      })
-    end,
-    event = { "BufReadPre *.solc", "BufNewFile *.solc" },
-    config = function(plugin)
-      vim.filetype.add({ extension = { solc = "core_solidity" } })
-      local lang = "core_solidity"
-      for _, name in ipairs({
-        "highlights", "injections", "folds", "indents",
-        "locals", "textobjects", "tags",
-      }) do
-        local f = io.open(plugin.dir .. "/queries/" .. name .. ".scm", "r")
-        if f then
-          vim.treesitter.query.set(lang, name, f:read("*a"))
-          f:close()
-        end
-      end
-    end,
-  },
-  {
-    "czepluch/tree-sitter-yul",
-    build = function(plugin)
-      local out = vim.fn.stdpath("data") .. "/site/parser/yul.so"
-      vim.fn.mkdir(vim.fn.fnamemodify(out, ":h"), "p")
-      vim.fn.system({
-        "cc", "-O2", "-shared", "-fPIC",
-        "-I", plugin.dir .. "/src",
-        plugin.dir .. "/src/parser.c",
-        "-o", out,
-      })
-    end,
-    config = function(plugin)
-      local f = io.open(plugin.dir .. "/queries/highlights.scm", "r")
-      if f then
-        vim.treesitter.query.set("yul", "highlights", f:read("*a"))
-        f:close()
-      end
-    end,
+    build = "mkdir -p ~/.local/share/nvim/site/parser && cc -O2 -shared -fPIC -I src src/parser.c src/scanner.c -o ~/.local/share/nvim/site/parser/core_solidity.so",
+    ft = "core_solidity",
+    dependencies = {
+      {
+        "czepluch/tree-sitter-yul",
+        build = "mkdir -p ~/.local/share/nvim/site/parser && cc -O2 -shared -fPIC -I src src/parser.c -o ~/.local/share/nvim/site/parser/yul.so",
+      },
+    },
   },
 }
 ```
@@ -100,31 +59,21 @@ missing semicolons.
 
 ### Plain Neovim (manual, no package manager)
 
-```bash
-# 1. clone
-git clone https://github.com/czepluch/tree-sitter-core-solidity \
-  ~/.local/share/tree-sitter-core-solidity
-cd ~/.local/share/tree-sitter-core-solidity
+Clone the repo somewhere on Neovim's runtime path so the bundled
+`ftdetect/` and `queries/core_solidity/` directories get picked up:
 
-# 2. compile the parser into Neovim's parser dir
+```bash
+git clone https://github.com/czepluch/tree-sitter-core-solidity \
+  ~/.local/share/nvim/site/pack/plugins/start/tree-sitter-core-solidity
+cd "$_"
 mkdir -p ~/.local/share/nvim/site/parser
 cc -O2 -shared -fPIC -I src src/parser.c src/scanner.c \
    -o ~/.local/share/nvim/site/parser/core_solidity.so
-
-# 3. install the queries
-mkdir -p ~/.config/nvim/queries/core_solidity
-ln -sf "$PWD"/queries/*.scm ~/.config/nvim/queries/core_solidity/
-```
-
-Then add to your `init.lua`:
-
-```lua
-vim.filetype.add({ extension = { solc = "core_solidity" } })
 ```
 
 For the Yul injection, repeat with
-<https://github.com/czepluch/tree-sitter-yul> (no `scanner.c` needed - the
-Yul parser only has `parser.c`).
+<https://github.com/czepluch/tree-sitter-yul> (no `scanner.c` - the Yul
+parser only has `parser.c`).
 
 ### Development (working on the grammar itself)
 
@@ -157,7 +106,7 @@ src/
   grammar.json              generated
   node-types.json           generated
   tree_sitter/              generated bindings
-queries/
+queries/core_solidity/
   highlights.scm            syntax highlighting
   injections.scm            Yul injection for assembly { ... }
   folds.scm                 fold regions
@@ -165,6 +114,7 @@ queries/
   locals.scm                scopes / definitions / references
   textobjects.scm           nvim-treesitter-textobjects motions
   tags.scm                  code-outline / ctags symbols
+ftdetect/core_solidity.lua  maps .solc -> filetype core_solidity
 lua/core_solidity/
   health.lua                :checkhealth core_solidity
 test/corpus/                48 tree-sitter corpus tests
