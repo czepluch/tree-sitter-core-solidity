@@ -24,9 +24,14 @@ jobs:
       - name: Run corpus tests
         run: npx tree-sitter test
 
-      - name: Smoke-test on example files
+      - name: Smoke-test examples (fail on ERROR nodes)
         run: |
+          fail=0
           for f in examples/*.solc; do
-            echo "=== $f ==="
-            npx tree-sitter parse "$f" --quiet
+            out=$(npx tree-sitter parse "$f" 2>&1)
+            if echo "$out" | grep -q ERROR; then
+              echo "::error file=$f::Contains ERROR node"
+              fail=1
+            fi
           done
+          exit $fail
