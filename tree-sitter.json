@@ -1,0 +1,37 @@
+{
+  "grammars": [
+    {
+      "name": "core_solidity",
+      "camelcase": "CoreSolidity",
+      "scope": "source.core-solidity",
+      "path": ".",
+      "file-types": ["solc"],
+      "highlights": "queries/core_solidity/highlights.scm",
+      "injections": "queries/core_solidity/injections.scm",
+      "locals": "queries/core_solidity/locals.scm",
+      "tags": "queries/core_solidity/tags.scm",
+      "injection-regex": "^core[-_]?solidity$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for Core Solidity (.solc)",
+    "authors": [
+      {
+        "name": "Jacob Czepluch"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/czepluch/tree-sitter-core-solidity"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": false,
+    "node": true,
+    "python": false,
+    "rust": true,
+    "swift": false
+  }
+}
