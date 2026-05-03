@@ -41,8 +41,7 @@ jobs:
             for f in "$d"/*.solc; do
               [ -f "$f" ] || continue
               total=$((total+1))
-              out=$(npx tree-sitter parse "$f" 2>&1)
-              if echo "$out" | grep -q ERROR; then
+              if ! npx tree-sitter parse "$f" --quiet >/dev/null 2>&1; then
                 fails+=("${f#../solcore/}")
               fi
             done
