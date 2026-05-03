@@ -28,8 +28,7 @@ jobs:
         run: |
           fail=0
           for f in examples/*.solc; do
-            out=$(npx tree-sitter parse "$f" 2>&1)
-            if echo "$out" | grep -q ERROR; then
+            if ! npx tree-sitter parse "$f" --quiet >/dev/null 2>&1; then
               echo "::error file=$f::Contains ERROR node"
               fail=1
             fi
