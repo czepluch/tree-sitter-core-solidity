@@ -1,0 +1,167 @@
+=====
+simple import
+=====
+
+import std;
+
+---
+
+(source_file
+  (import_decl
+    path: (module_path
+      (identifier))))
+
+=====
+aliased import
+=====
+
+import std as S;
+
+---
+
+(source_file
+  (import_decl
+    path: (module_path
+      (identifier))
+    alias: (identifier)))
+
+=====
+glob import
+=====
+
+import std.{*};
+
+---
+
+(source_file
+  (import_decl
+    path: (module_path
+      (identifier))))
+
+=====
+selective import
+=====
+
+import std.{Foo, Bar};
+
+---
+
+(source_file
+  (import_decl
+    path: (module_path
+      (identifier))
+    (identifier)
+    (identifier)))
+
+=====
+import with hiding
+=====
+
+import std.{*} hiding {x, y};
+
+---
+
+(source_file
+  (import_decl
+    path: (module_path
+      (identifier))
+    hiding: (import_hiding
+      (identifier)
+      (identifier))))
+
+=====
+import with dotted module path
+=====
+
+import std.dispatch.{*};
+
+---
+
+(source_file
+  (import_decl
+    path: (module_path
+      (identifier)
+      (identifier))))
+
+=====
+export list
+=====
+
+export { a, b };
+
+---
+
+(source_file
+  (export_decl
+    (identifier)
+    (identifier)))
+
+=====
+export list with constructor selectors
+=====
+
+export { Foo(*), Bar(A, B), Baz };
+
+---
+
+(source_file
+  (export_decl
+    (identifier)
+    (identifier)
+    (identifier)
+    (identifier)
+    (identifier)))
+
+=====
+export module
+=====
+
+export std;
+
+---
+
+(source_file
+  (export_decl
+    path: (module_path
+      (identifier))))
+
+=====
+export aliased
+=====
+
+export std as S;
+
+---
+
+(source_file
+  (export_decl
+    path: (module_path
+      (identifier))
+    alias: (identifier)))
+
+=====
+export module glob
+=====
+
+export std.*;
+
+---
+
+(source_file
+  (export_decl
+    path: (module_path
+      (identifier))))
+
+=====
+export from external path
+=====
+
+export @addr.std;
+
+---
+
+(source_file
+  (export_decl
+    address: (identifier)
+    path: (module_path
+      (identifier))))

@@ -53,7 +53,7 @@
   "assembly"
 ] @keyword
 
-"import" @keyword.import
+[ "import" "export" "as" "hiding" ] @keyword.import
 "return" @keyword.return
 
 [ "if" "else" "then" "match" ] @keyword.control

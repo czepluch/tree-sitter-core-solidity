@@ -90,6 +90,46 @@ function f(x, y) { match x, y { | True, True => return 1; | _, _ => return 0; } 
             value: (integer_literal)))))))
 
 =====
+qualified constructor pattern (dot shorthand)
+=====
+
+function f(x) {
+  match x {
+    | B.F => return 1;
+    | B.G(y) => return y;
+  }
+}
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)))
+    body: (body
+      (match_stmt
+        scrutinees: (identifier)
+        (match_arm
+          patterns: (constructor_pattern
+            name: (qualified_name
+              (identifier)
+              (identifier)))
+          (return_stmt
+            value: (integer_literal)))
+        (match_arm
+          patterns: (constructor_pattern
+            name: (qualified_name
+              (identifier)
+              (identifier))
+            args: (pattern_args
+              (constructor_pattern
+                name: (identifier))))
+          (return_stmt
+            value: (identifier)))))))
+
+=====
 nested constructor pattern
 =====
 

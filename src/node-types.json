@@ -947,6 +947,10 @@
           {
             "type": "identifier",
             "named": true
+          },
+          {
+            "type": "qualified_name",
+            "named": true
           }
         ]
       }
@@ -1079,6 +1083,56 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "export_decl",
+    "named": true,
+    "fields": {
+      "address": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "alias": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "module_path",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "module_path",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1561,16 +1615,61 @@
     "type": "import_decl",
     "named": true,
     "fields": {
-      "name": {
+      "alias": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "identifier",
             "named": true
           }
         ]
+      },
+      "hiding": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "import_hiding",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "module_path",
+            "named": true
+          }
+        ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "import_hiding",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2338,6 +2437,21 @@
     }
   },
   {
+    "type": "module_path",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "param",
     "named": true,
     "fields": {
@@ -2622,6 +2736,21 @@
     }
   },
   {
+    "type": "qualified_name",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "return_stmt",
     "named": true,
     "fields": {
@@ -2793,6 +2922,10 @@
         },
         {
           "type": "data_decl",
+          "named": true
+        },
+        {
+          "type": "export_decl",
           "named": true
         },
         {
@@ -3501,6 +3634,10 @@
     "named": false
   },
   {
+    "type": "as",
+    "named": false
+  },
+  {
     "type": "assembly",
     "named": false
   },
@@ -3538,6 +3675,10 @@
     "named": true
   },
   {
+    "type": "export",
+    "named": false
+  },
+  {
     "type": "forall",
     "named": false
   },
@@ -3548,6 +3689,10 @@
   {
     "type": "hex_literal",
     "named": true
+  },
+  {
+    "type": "hiding",
+    "named": false
   },
   {
     "type": "identifier",

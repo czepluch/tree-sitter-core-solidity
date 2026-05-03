@@ -47,7 +47,9 @@ module.exports = grammar({
 
   word: $ => $.identifier,
 
-  conflicts: $ => [],
+  conflicts: $ => [
+    [$.module_path],
+  ],
 
   rules: {
     source_file: $ => seq(
@@ -59,8 +61,32 @@ module.exports = grammar({
 
     import_decl: $ => seq(
       'import',
-      field('name', $.identifier),
+      field('path', $.module_path),
+      optional(choice(
+        seq('as', field('alias', $.identifier)),
+        seq(
+          '.',
+          '{',
+          optional(commaSep($._import_item)),
+          '}',
+          optional(field('hiding', $.import_hiding)),
+        ),
+      )),
       ';',
+    ),
+
+    module_path: $ => seq(
+      $.identifier,
+      repeat(seq('.', $.identifier)),
+    ),
+
+    _import_item: $ => choice('*', $.identifier),
+
+    import_hiding: $ => seq(
+      'hiding',
+      '{',
+      optional(commaSep($.identifier)),
+      '}',
     ),
 
     // ----- top-level declarations -----
@@ -73,6 +99,48 @@ module.exports = grammar({
       $.data_decl,
       $.type_synonym,
       $.pragma_decl,
+      $.export_decl,
+    ),
+
+    // ----- exports -----
+
+    export_decl: $ => seq(
+      'export',
+      choice(
+        seq('{', optional(commaSep($._export_list_item)), '}'),
+        seq(field('path', $.module_path), optional($._export_tail)),
+        seq(
+          '@',
+          field('address', $.identifier),
+          '.',
+          field('path', $.module_path),
+          optional($._export_tail),
+        ),
+      ),
+      ';',
+    ),
+
+    _export_list_item: $ => choice(
+      '*',
+      $.identifier,
+      seq($.identifier, '(', $._export_constructor_items, ')'),
+      seq($.module_path, '.', '*'),
+    ),
+
+    _export_constructor_items: $ => choice(
+      '*',
+      commaSep1($.identifier),
+    ),
+
+    _export_tail: $ => choice(
+      seq('as', field('alias', $.identifier)),
+      seq('.', '{', optional(commaSep($._export_from_item)), '}'),
+      seq('.', '*'),
+    ),
+
+    _export_from_item: $ => choice(
+      '*',
+      $.identifier,
     ),
 
     // ----- pragma -----
@@ -323,9 +391,16 @@ module.exports = grammar({
     literal_pattern:  $ => $._literal,
 
     constructor_pattern: $ => seq(
-      field('name', $.identifier),
+      field('name', choice($.identifier, $.qualified_name)),
       optional(field('args', $.pattern_args)),
     ),
+
+    qualified_name: $ => prec.right(seq(
+      $.identifier,
+      '.',
+      $.identifier,
+      repeat(seq('.', $.identifier)),
+    )),
 
     pattern_args: $ => seq('(', commaSep1($._pattern), ')'),
 
