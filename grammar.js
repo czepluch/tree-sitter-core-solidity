@@ -234,9 +234,9 @@ module.exports = grammar({
 
     sig_prefix: $ => seq(
       'forall',
-      repeat1($.identifier),
+      field('vars', repeat1($.identifier)),
       '.',
-      optional(seq(commaSep1($.constraint), '=>')),
+      optional(seq(field('constraints', commaSep1($.constraint)), '=>')),
     ),
 
     constraint: $ => seq(
@@ -366,7 +366,7 @@ module.exports = grammar({
       'match',
       field('scrutinees', commaSep1($._expression)),
       '{',
-      repeat($.match_arm),
+      field('arms', repeat($.match_arm)),
       '}',
     ),
 
@@ -374,7 +374,7 @@ module.exports = grammar({
       '|',
       field('patterns', commaSep1($._pattern)),
       '=>',
-      repeat($._statement),
+      field('body', repeat($._statement)),
     ),
 
     // ----- patterns -----
@@ -566,7 +566,7 @@ module.exports = grammar({
 
     function_type: $ => prec.right(seq(
       '(',
-      optional(commaSep1($._type)),
+      optional(field('params', commaSep1($._type))),
       ')',
       '->',
       field('return_type', $._type),

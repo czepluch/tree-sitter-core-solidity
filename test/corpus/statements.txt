@@ -135,29 +135,29 @@ function f(x) {
     body: (body
       (match_stmt
         scrutinees: (identifier)
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (identifier)
             args: (pattern_args
               (constructor_pattern
                 name: (identifier))))
-          (match_stmt
+          body: (match_stmt
             scrutinees: (identifier)
-            (match_arm
+            arms: (match_arm
               patterns: (constructor_pattern
                 name: (identifier)
                 args: (pattern_args
                   (constructor_pattern
                     name: (identifier))))
-              (return_stmt
+              body: (return_stmt
                 value: (identifier)))
-            (match_arm
+            arms: (match_arm
               patterns: (constructor_pattern
                 name: (identifier))
-              (return_stmt
+              body: (return_stmt
                 value: (integer_literal)))))
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (identifier))
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))))))

@@ -40,7 +40,7 @@ forall a . class a : Mem {
 (source_file
   (class_decl
     sig_prefix: (sig_prefix
-      (identifier))
+      vars: (identifier))
     self: (identifier)
     name: (identifier)
     body: (class_body

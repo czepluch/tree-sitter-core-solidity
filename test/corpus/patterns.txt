@@ -15,18 +15,18 @@ function f(x) { match x { | Zero => return 0; | Succ(n) => return 1; } }
     body: (body
       (match_stmt
         scrutinees: (identifier)
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (identifier))
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (identifier)
             args: (pattern_args
               (constructor_pattern
                 name: (identifier))))
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))))))
 
 =====
@@ -46,14 +46,14 @@ function f(x) { match x { | 0 => return 1; | _ => return 0; } }
     body: (body
       (match_stmt
         scrutinees: (identifier)
-        (match_arm
+        arms: (match_arm
           patterns: (literal_pattern
             (integer_literal))
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))
-        (match_arm
+        arms: (match_arm
           patterns: (wildcard_pattern)
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))))))
 
 =====
@@ -76,17 +76,17 @@ function f(x, y) { match x, y { | True, True => return 1; | _, _ => return 0; } 
       (match_stmt
         scrutinees: (identifier)
         scrutinees: (identifier)
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (identifier))
           patterns: (constructor_pattern
             name: (identifier))
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))
-        (match_arm
+        arms: (match_arm
           patterns: (wildcard_pattern)
           patterns: (wildcard_pattern)
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))))))
 
 =====
@@ -111,14 +111,14 @@ function f(x) {
     body: (body
       (match_stmt
         scrutinees: (identifier)
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (qualified_name
               (identifier)
               (identifier)))
-          (return_stmt
+          body: (return_stmt
             value: (integer_literal)))
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (qualified_name
               (identifier)
@@ -126,7 +126,7 @@ function f(x) {
             args: (pattern_args
               (constructor_pattern
                 name: (identifier))))
-          (return_stmt
+          body: (return_stmt
             value: (identifier)))))))
 
 =====
@@ -146,7 +146,7 @@ function f(x) { match x { | Succ(Succ(n)) => return n; } }
     body: (body
       (match_stmt
         scrutinees: (identifier)
-        (match_arm
+        arms: (match_arm
           patterns: (constructor_pattern
             name: (identifier)
             args: (pattern_args
@@ -155,5 +155,5 @@ function f(x) { match x { | Succ(Succ(n)) => return n; } }
                 args: (pattern_args
                   (constructor_pattern
                     name: (identifier))))))
-          (return_stmt
+          body: (return_stmt
             value: (identifier)))))))
