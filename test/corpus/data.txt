@@ -65,3 +65,23 @@ data Nat = Zero | Succ(Nat);
       args: (type_args
         (type_identifier
           name: (identifier))))))
+
+=====
+type synonym with parameters
+=====
+
+type Pair(a, b) = (a, b);
+
+---
+
+(source_file
+  (type_synonym
+    name: (identifier)
+    params: (type_params
+      (identifier)
+      (identifier))
+    type: (tuple_type
+      (type_identifier
+        name: (identifier))
+      (type_identifier
+        name: (identifier)))))

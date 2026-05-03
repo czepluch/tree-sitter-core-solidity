@@ -88,3 +88,36 @@ instance (a, b) : Pair {
         name: (identifier)))
     class: (identifier)
     body: (instance_body)))
+
+=====
+instance with multi-arg type head
+=====
+
+instance Method(name, payability, args, rets, fn) : ExecMethod {
+  function go() { return 1; }
+}
+
+---
+
+(source_file
+  (instance_decl
+    head: (type_identifier
+      name: (identifier)
+      args: (type_args
+        (type_identifier
+          name: (identifier))
+        (type_identifier
+          name: (identifier))
+        (type_identifier
+          name: (identifier))
+        (type_identifier
+          name: (identifier))
+        (type_identifier
+          name: (identifier))))
+    class: (identifier)
+    body: (instance_body
+      (function_decl
+        name: (identifier)
+        body: (body
+          (return_stmt
+            value: (integer_literal)))))))

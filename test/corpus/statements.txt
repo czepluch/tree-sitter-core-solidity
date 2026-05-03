@@ -109,3 +109,55 @@ function f(x) { if (x) { return 1; } }
         consequence: (body
           (return_stmt
             value: (integer_literal)))))))
+
+=====
+nested match (match-in-match)
+=====
+
+function f(x) {
+  match x {
+    | Some(y) => match y {
+        | Some(z) => return z;
+        | None => return 0;
+      }
+    | None => return 0;
+  }
+}
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)))
+    body: (body
+      (match_stmt
+        scrutinees: (identifier)
+        (match_arm
+          patterns: (constructor_pattern
+            name: (identifier)
+            args: (pattern_args
+              (constructor_pattern
+                name: (identifier))))
+          (match_stmt
+            scrutinees: (identifier)
+            (match_arm
+              patterns: (constructor_pattern
+                name: (identifier)
+                args: (pattern_args
+                  (constructor_pattern
+                    name: (identifier))))
+              (return_stmt
+                value: (identifier)))
+            (match_arm
+              patterns: (constructor_pattern
+                name: (identifier))
+              (return_stmt
+                value: (integer_literal)))))
+        (match_arm
+          patterns: (constructor_pattern
+            name: (identifier))
+          (return_stmt
+            value: (integer_literal)))))))

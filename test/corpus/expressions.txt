@@ -188,3 +188,58 @@ function f() { return @Foo; }
         value: (proxy_expression
           type: (type_identifier
             name: (identifier)))))))
+
+=====
+chained member access
+=====
+
+function f() { return a.b.c; }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    body: (body
+      (return_stmt
+        value: (member_expression
+          object: (member_expression
+            object: (identifier)
+            property: (identifier))
+          property: (identifier))))))
+
+=====
+proxy in parameter type and call argument
+=====
+
+function foo(x : @word) -> word { return 0; }
+function bar() -> word { return foo(@word); }
+
+---
+
+(source_file
+  (function_decl
+    name: (identifier)
+    params: (param_list
+      (param
+        name: (identifier)
+        type: (proxy_type
+          type: (type_identifier
+            name: (identifier)))))
+    return_type: (type_identifier
+      name: (identifier))
+    body: (body
+      (return_stmt
+        value: (integer_literal))))
+  (function_decl
+    name: (identifier)
+    return_type: (type_identifier
+      name: (identifier))
+    body: (body
+      (return_stmt
+        value: (call_expression
+          function: (identifier)
+          arguments: (arguments
+            (proxy_expression
+              type: (type_identifier
+                name: (identifier)))))))))

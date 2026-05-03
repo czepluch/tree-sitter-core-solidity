@@ -75,3 +75,35 @@ contract Counter {
             right: (binary_expression
               left: (identifier)
               right: (integer_literal))))))))
+
+=====
+multiple contracts in one file
+=====
+
+contract A {
+  function a() { return 1; }
+}
+
+contract B {
+  function b() { return 2; }
+}
+
+---
+
+(source_file
+  (contract_decl
+    name: (identifier)
+    body: (contract_body
+      (function_decl
+        name: (identifier)
+        body: (body
+          (return_stmt
+            value: (integer_literal))))))
+  (contract_decl
+    name: (identifier)
+    body: (contract_body
+      (function_decl
+        name: (identifier)
+        body: (body
+          (return_stmt
+            value: (integer_literal)))))))
