@@ -18,15 +18,19 @@ local QUERY_NAMES = {
 function M.check()
   vim.health.start("core_solidity")
 
-  -- Parser
-  local ok, err = pcall(vim.treesitter.language.add, "core_solidity")
-  if ok then
+  -- Parser. language.add returns false (not throws) when the parser .so
+  -- can't be found on runtimepath, so check the return value too.
+  local ok, added = pcall(vim.treesitter.language.add, "core_solidity")
+  if ok and added then
     vim.health.ok("parser 'core_solidity' is loadable")
   else
+    local detail = ok and "language.add returned false (parser .so not found on runtimepath)"
+                       or ("exception: " .. tostring(added))
     vim.health.error(
-      "parser 'core_solidity' not loadable: " .. tostring(err),
+      "parser 'core_solidity' not loadable - " .. detail,
       {
         "Run :Lazy build tree-sitter-core-solidity to rebuild the parser.",
+        "Check that ~/.local/share/nvim/site/parser/core_solidity.so exists.",
         "Check that a C compiler (cc / clang / gcc) is on PATH.",
       }
     )
@@ -57,9 +61,9 @@ function M.check()
     )
   end
 
-  -- Yul injection (optional)
-  local yul_ok = pcall(vim.treesitter.language.add, "yul")
-  if yul_ok then
+  -- Yul injection (optional). Same return-value caveat as above.
+  local yul_ok, yul_added = pcall(vim.treesitter.language.add, "yul")
+  if yul_ok and yul_added then
     vim.health.ok("yul parser found - assembly blocks will be highlighted")
   else
     vim.health.info(
